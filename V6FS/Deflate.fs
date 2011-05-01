@@ -5,7 +5,6 @@ module Deflate
 open System
 open System.Collections.Generic
 open System.IO
-open System.Linq
 open Crc
 
 let maxbuf = 32768
@@ -119,8 +118,8 @@ type WriteBuffer(sout:Stream) =
 
 type Huffman(lens:int[]) =
     let vals = Array.zeroCreate<int> lens.Length
-    let min = lens.Where(fun x -> x > 0).Min()
-    let max = lens.Max()
+    let min = Array.min([| for x in lens do if x > 0 then yield x |])
+    let max = Array.max(lens)
     let counts = Array.zeroCreate<int>  (max + 1)
     let firsts = Array.zeroCreate<int>  (max + 1)
     let nexts  = Array.zeroCreate<int>  (max + 1)
