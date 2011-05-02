@@ -14,14 +14,24 @@ let miFileExit = new MenuItem("E&xit")
 miFile.MenuItems.AddRange([|miFileOpen; miFileSaveZip; new MenuItem("-"); miFileExit|])
 menu.MenuItems.Add(miFile) |> ignore
 
-let f = new Form(Text = "V6FS", Menu = menu)
+let f = new Form(Text = "V6FS", Menu = menu, Width = 600, Height = 400)
 let mono = new Font(FontFamily.GenericMonospace, Control.DefaultFont.Size)
+let split1 = new SplitContainer(Dock = DockStyle.Fill)
 let textBox1 = new TextBox(Dock = DockStyle.Fill,
                            WordWrap = false,
                            Multiline = true,
                            Font = mono,
                            ScrollBars = ScrollBars.Both)
-f.Controls.Add(textBox1)
+split1.Panel1.Controls.Add(textBox1)
+let listView1 = new ListView(Dock = DockStyle.Fill,
+                             FullRowSelect = true,
+                             View = View.Details)
+let clmName = new ColumnHeader(Text = "Name", Width = 200)
+let clmSize = new ColumnHeader(Text = "Size", Width = 64, TextAlign = HorizontalAlignment.Right)
+listView1.Columns.AddRange([|clmName; clmSize|])
+split1.Panel2.Controls.Add(listView1)
+f.Controls.Add(split1)
+split1.SplitterDistance <- f.ClientSize.Width / 2
 
 miFileExit.Click.Add <| fun _ -> f.Close()
 
