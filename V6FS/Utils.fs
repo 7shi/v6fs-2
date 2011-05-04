@@ -47,7 +47,7 @@ let getResourceStream(name) =
 let getHexDump (buf:byte[]) =
     use sw = new StringWriter()
     for i in 0..16..buf.Length - 1 do
-        sw.Write("{0:X4}:", i)
+        sw.Write("{0:X6}:", i)
         use asc = new StringWriter()
         for j = 0 to 15 do
             if i + j < buf.Length then
