@@ -169,7 +169,7 @@ miFileOpen.Click.Add <| fun _ ->
 #if DEBUG
             reraise()
 #else
-            sw.WriteLine(e.ToString())
+            textBox1.Text <- e.ToString()
             miFileSaveZip.Enabled <- false
             root <- Unchecked.defaultof<Entry>
 #endif
