@@ -1,4 +1,5 @@
 ﻿open System
+open System.Collections.Generic
 open System.Drawing
 open System.IO
 open System.Windows.Forms
@@ -24,18 +25,28 @@ let miFileExit = new MenuItem("E&xit")
 miFile.MenuItems.AddRange([|miFileOpen; miFileSaveZip; new MenuItem("-"); miFileExit|])
 menu.MenuItems.Add(miFile) |> ignore
 
-let f = new Form(Text = "V6FS", Menu = menu, Width = 640, Height = 400)
+let f = new Form(Text = "V6FS", Menu = menu, Width = 780, Height = 560)
 let mono = new Font(FontFamily.GenericMonospace, Control.DefaultFont.Size)
 let split1 = new SplitContainer(Dock = DockStyle.Fill)
 let split2 = new SplitContainer(Dock = DockStyle.Fill)
+let split3 = new SplitContainer(Dock = DockStyle.Fill,
+                                Orientation = Orientation.Horizontal)
 split1.Panel2.Controls.Add(split2)
+split2.Panel2.Controls.Add(split3)
 let textBox1 = new TextBox(Dock = DockStyle.Fill,
                            HideSelection = false,
                            WordWrap = false,
                            Multiline = true,
                            Font = mono,
                            ScrollBars = ScrollBars.Both)
-split2.Panel2.Controls.Add(textBox1)
+split3.Panel1.Controls.Add(textBox1)
+let textBox2 = new TextBox(Dock = DockStyle.Fill,
+                           HideSelection = false,
+                           WordWrap = false,
+                           Multiline = true,
+                           Font = mono,
+                           ScrollBars = ScrollBars.Both)
+split3.Panel2.Controls.Add(textBox2)
 let treeView1 = new TreeView(Dock = DockStyle.Fill,
                              HideSelection = false,
                              ShowRootLines = false,
@@ -55,25 +66,53 @@ split2.Panel1.Controls.Add(listView1)
 f.Controls.Add(split1)
 split1.SplitterDistance <- 140
 split2.SplitterDistance <- 200
+split3.SplitterDistance <- split3.ClientSize.Height / 2
 
-let rec treeDir (dir:Entry) (n:TreeNode) =
+let dirdic = new Dictionary<string, TreeNode>()
+
+let rec dirTree (dir:Entry) (n:TreeNode) =
     let nn = if n <> null then n.Nodes else treeView1.Nodes
     let n = nn.Add(dir.Icon, dir.Name)
     n.Tag <- dir
-    for e in dir.children do
+    dirdic.Add(dir.FullName, n)
+    for e in dir.Children do
         if e.INode.IsDir then
-            treeDir e n |> ignore
+            dirTree e n |> ignore
     n
 
-let listDir(dir:Entry) =
+let dirList (dir:Entry) =
     listView1.Items.Clear()
     for e in dir.Children do
         let it = listView1.Items.Add(e.Name, e.Icon)
+        it.Tag <- e
         it.SubItems.Add(e.INode.Length.ToString()) |> ignore
+
+let rec dirINodes (tw:TextWriter) (e:Entry) =
+    tw.WriteLine()
+    e.Write(tw)
+    for child in e.Children do
+        dirINodes tw child
+
+let showInfo (e:Entry) =
+    use sw = new StringWriter()
+    if e.INode.inode = 1 then
+        e.FileSystem.Write sw
+        sw.WriteLine()
+    e.Write sw
+    textBox1.Text <- sw.ToString()
+    textBox2.Text <- getHexDump(readAllBytes e.INode)
 
 treeView1.AfterSelect.Add <| fun e ->
     if e.Node <> null then
-        listDir(e.Node.Tag :?> Entry)
+        let ent = e.Node.Tag :?> Entry
+        dirList ent
+        showInfo ent
+
+listView1.SelectedIndexChanged.Add <| fun _ ->
+    let it = listView1.SelectedItems
+    if it.Count > 0 then
+        let ent = it.[0].Tag :?> Entry
+        showInfo ent
 
 miFileExit.Click.Add <| fun _ -> f.Close()
 
@@ -82,21 +121,13 @@ let ofd = new OpenFileDialog()
 
 miFileOpen.Click.Add <| fun _ ->
     if ofd.ShowDialog(f) = DialogResult.OK then
-        let sw = new StringWriter()
         try
             let fs = new FileStream(ofd.FileName, FileMode.Open)
             root <- Open(fs)
             fs.Dispose()
             
-            root.FileSystem.Write(sw)
-            let rec dir (e:Entry) =
-                sw.WriteLine()
-                e.Write(sw)
-                for child in e.Children do
-                    dir(child)
-            dir(root)
             treeView1.Nodes.Clear()
-            let nroot = treeDir root null
+            let nroot = dirTree root null
             nroot.Expand()
             treeView1.SelectedNode <- nroot
             miFileSaveZip.Enabled <- true
@@ -108,7 +139,6 @@ miFileOpen.Click.Add <| fun _ ->
             miFileSaveZip.Enabled <- false
             root <- Unchecked.defaultof<Entry>
 #endif
-        textBox1.Text <- sw.ToString()
 
 let sfd = new SaveFileDialog(Filter = "ZIP Archive (*.zip)|*.zip|All files (*.*)|*.*")
 

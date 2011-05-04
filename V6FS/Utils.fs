@@ -43,3 +43,21 @@ let join(sep:string, objs:'a[]) =
 let getResourceStream(name) =
     let asm = Assembly.GetExecutingAssembly()
     asm.GetManifestResourceStream(name)
+
+let getHexDump (buf:byte[]) =
+    use sw = new StringWriter()
+    for i in 0..16..buf.Length - 1 do
+        sw.Write("{0:X4}:", i)
+        use asc = new StringWriter()
+        for j = 0 to 15 do
+            if i + j < buf.Length then
+                if j = 8 then sw.Write(" -")
+                let b = buf.[i + j]
+                sw.Write(" {0:X2}", b)
+                let ch = if b < 32uy || b > 127uy then '.' else char(b)
+                asc.Write("{0}", ch)
+            else
+                if j = 8 then sw.Write("  ")
+                sw.Write("   ")
+        sw.WriteLine(" {0}", asc.ToString())
+    sw.ToString()
