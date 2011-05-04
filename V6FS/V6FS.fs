@@ -180,7 +180,7 @@ let writeFile(list:List<ZipDirHeader>, bw:BinaryWriter, e:Entry, rel:string) =
         uint32 len, data, crc
     let p = uint32 bw.BaseStream.Position
     let ziph = ZipDirHeader.Create e.INode.LastWriteTime e.FileAttributes rel len crc data p
-    bw.Write [| byte 'P'; byte 'K'; 3uy; 4uy |]
+    bw.Write [| 'P'B; 'K'B; 3uy; 4uy |]
     ziph.header.Write bw
     bw.Write ziph.fname
     bw.Write data
@@ -190,7 +190,7 @@ let rec writeDir(list:List<ZipDirHeader>, bw:BinaryWriter, e:Entry, rel:string) 
     if rel <> "" then
         let p = uint32 bw.BaseStream.Position
         let ziph = ZipDirHeader.Create e.INode.LastWriteTime e.FileAttributes (rel + "/") 0u 0u null p
-        bw.Write [| byte 'P'; byte 'K'; 3uy; 4uy |]
+        bw.Write [| 'P'B; 'K'B; 3uy; 4uy |]
         ziph.header.Write bw
         bw.Write ziph.fname
         list.Add(ziph)
@@ -205,11 +205,11 @@ let SaveZip(fs:Stream, root:Entry) =
 
     let dir_start = bw.BaseStream.Position
     for ziph in list do
-        bw.Write [| byte 'P'; byte 'K'; 1uy; 2uy |]
+        bw.Write [| 'P'B; 'K'B; 1uy; 2uy |]
         ziph.Write bw
     let dir_len = bw.BaseStream.Position - dir_start
     
-    bw.Write [| byte 'P'; byte 'K'; 5uy; 6uy |]
+    bw.Write [| 'P'B; 'K'B; 5uy; 6uy |]
     bw.Write 0us // number of this disk
     bw.Write 0us // number of the disk with the start of the central directory
     bw.Write (uint16 list.Count)
