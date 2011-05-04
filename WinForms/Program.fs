@@ -45,6 +45,7 @@ let listView1 = new ListView(Dock = DockStyle.Fill,
                              HideSelection = false,
                              FullRowSelect = true,
                              View = View.Details,
+                             HeaderStyle = ColumnHeaderStyle.Nonclickable,
                              SmallImageList = icons)
 let clmName = new ColumnHeader(Text = "Name", Width = 100)
 let clmSize = new ColumnHeader(Text = "Size", Width = 60,
@@ -67,7 +68,8 @@ let rec treeDir (dir:Entry) (n:TreeNode) =
 let listDir(dir:Entry) =
     listView1.Items.Clear()
     for e in dir.Children do
-        listView1.Items.Add(e.Name, e.Icon) |> ignore
+        let it = listView1.Items.Add(e.Name, e.Icon)
+        it.SubItems.Add(e.INode.Length.ToString()) |> ignore
 
 treeView1.AfterSelect.Add <| fun e ->
     if e.Node <> null then
