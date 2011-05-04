@@ -26,47 +26,42 @@ miFile.MenuItems.AddRange([|miFileOpen; miFileSaveZip; new MenuItem("-"); miFile
 menu.MenuItems.Add(miFile) |> ignore
 
 let f = new Form(Text = "V6FS", Menu = menu, Width = 780, Height = 560)
+let treeView1 = new TreeView(Dock = DockStyle.Left,
+                             HideSelection = false,
+                             ShowRootLines = false,
+                             ImageList = icons,
+                             Width = 130)
+let split1 = new Splitter(Dock = DockStyle.Left)
+let listView1 = new ListView(Dock = DockStyle.Left,
+                             HideSelection = false,
+                             FullRowSelect = true,
+                             View = View.Details,
+                             HeaderStyle = ColumnHeaderStyle.Nonclickable,
+                             SmallImageList = icons,
+                             Width = 180)
+let clmName = new ColumnHeader(Text = "Name", Width = 90)
+let clmSize = new ColumnHeader(Text = "Size", Width = 60,
+                               TextAlign = HorizontalAlignment.Right)
+listView1.Columns.AddRange([|clmName; clmSize|])
+let split2 = new Splitter(Dock = DockStyle.Left)
+let panel1 = new Panel(Dock = DockStyle.Fill)
 let mono = new Font(FontFamily.GenericMonospace, Control.DefaultFont.Size)
-let split1 = new SplitContainer(Dock = DockStyle.Fill)
-let split2 = new SplitContainer(Dock = DockStyle.Fill)
-let split3 = new SplitContainer(Dock = DockStyle.Fill,
-                                Orientation = Orientation.Horizontal)
-split1.Panel2.Controls.Add(split2)
-split2.Panel2.Controls.Add(split3)
-let textBox1 = new TextBox(Dock = DockStyle.Fill,
+let textBox1 = new TextBox(Dock = DockStyle.Top,
                            HideSelection = false,
                            WordWrap = false,
                            Multiline = true,
                            Font = mono,
-                           ScrollBars = ScrollBars.Both)
-split3.Panel1.Controls.Add(textBox1)
+                           ScrollBars = ScrollBars.Both,
+                           Height = 180)
+let split3 = new Splitter(Dock = DockStyle.Top)
 let textBox2 = new TextBox(Dock = DockStyle.Fill,
                            HideSelection = false,
                            WordWrap = false,
                            Multiline = true,
                            Font = mono,
                            ScrollBars = ScrollBars.Both)
-split3.Panel2.Controls.Add(textBox2)
-let treeView1 = new TreeView(Dock = DockStyle.Fill,
-                             HideSelection = false,
-                             ShowRootLines = false,
-                             ImageList = icons)
-split1.Panel1.Controls.Add(treeView1)
-let listView1 = new ListView(Dock = DockStyle.Fill,
-                             HideSelection = false,
-                             FullRowSelect = true,
-                             View = View.Details,
-                             HeaderStyle = ColumnHeaderStyle.Nonclickable,
-                             SmallImageList = icons)
-let clmName = new ColumnHeader(Text = "Name", Width = 100)
-let clmSize = new ColumnHeader(Text = "Size", Width = 60,
-                               TextAlign = HorizontalAlignment.Right)
-listView1.Columns.AddRange([|clmName; clmSize|])
-split2.Panel1.Controls.Add(listView1)
-f.Controls.Add(split1)
-split1.SplitterDistance <- 140
-split2.SplitterDistance <- 200
-split3.SplitterDistance <- split3.ClientSize.Height / 2
+panel1.Controls.AddRange([| textBox2; split3; textBox1 |])
+f.Controls.AddRange([| panel1; split2; listView1; split1; treeView1 |])
 
 let dirdic = new Dictionary<string, TreeNode>()
 
