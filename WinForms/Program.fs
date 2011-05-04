@@ -17,12 +17,21 @@ let icons = new ImageList()
 for png in ["folder"; "file"; "executable"; "text"] do
     icons.Images.Add(png, getResourceBitmap(png + ".png"))
 
+let cmenu1 = new ContextMenu()
+let miSaveZip1 = new MenuItem("Save Directory as &Zip", Enabled = false)
+cmenu1.MenuItems.AddRange([|miSaveZip1|])
+let cmenu2 = new ContextMenu()
+let miSave = new MenuItem("&Save File", Enabled = false)
+let miSaveZip2 = new MenuItem("Save Directory as &Zip", Enabled = false)
+cmenu2.MenuItems.AddRange([|miSave; miSaveZip2|])
+
 let menu = new MainMenu()
 let miFile = new MenuItem("&File")
-let miFileOpen = new MenuItem("&Open")
-let miFileSaveZip = new MenuItem(Text = "Save as &Zip", Enabled = false)
+let miFileOpen = new MenuItem("&Open Image")
+let miFileSaveZip = new MenuItem("Save Image as &Zip", Enabled = false)
 let miFileExit = new MenuItem("E&xit")
-miFile.MenuItems.AddRange([|miFileOpen; miFileSaveZip; new MenuItem("-"); miFileExit|])
+miFile.MenuItems.AddRange(
+    [|miFileOpen; miFileSaveZip; new MenuItem("-"); miFileExit|])
 menu.MenuItems.Add(miFile) |> ignore
 
 let f = new Form(Text = "V6FS", Menu = menu, Width = 780, Height = 560)
@@ -38,7 +47,9 @@ let listView1 = new ListView(Dock = DockStyle.Left,
                              View = View.Details,
                              HeaderStyle = ColumnHeaderStyle.Nonclickable,
                              SmallImageList = icons,
-                             Width = 180)
+                             Width = 180,
+                             ContextMenu = cmenu2,
+                             MultiSelect = false)
 let clmName = new ColumnHeader(Text = "Name", Width = 90)
 let clmSize = new ColumnHeader(Text = "Size", Width = 60,
                                TextAlign = HorizontalAlignment.Right)
@@ -107,12 +118,25 @@ treeView1.AfterSelect.Add <| fun e ->
         let ent = e.Node.Tag :?> Entry
         dirList ent
         showInfo ent
+        miSaveZip1.Enabled <- true
+        miSaveZip2.Enabled <- false
+        miSave.Enabled <- false
+
+treeView1.MouseUp.Add <| fun e ->
+    if e.Button = MouseButtons.Right then
+        let n = treeView1.GetNodeAt(e.X, e.Y)
+        treeView1.SelectedNode <- n
+        cmenu1.Show(treeView1, e.Location)
 
 listView1.SelectedIndexChanged.Add <| fun _ ->
     let it = listView1.SelectedItems
     if it.Count > 0 then
         let ent = it.[0].Tag :?> Entry
         showInfo ent
+        let isDir = ent.INode.IsDir
+        miSaveZip1.Enabled <- false
+        miSaveZip2.Enabled <- isDir
+        miSave.Enabled <- not isDir
 
 listView1.DoubleClick.Add <| fun _ ->
     let it = listView1.SelectedItems
@@ -124,12 +148,14 @@ listView1.DoubleClick.Add <| fun _ ->
 miFileExit.Click.Add <| fun _ -> f.Close()
 
 let mutable root = Unchecked.defaultof<Entry>
+let mutable imgfn = ""
 let ofd = new OpenFileDialog()
 
 miFileOpen.Click.Add <| fun _ ->
     if ofd.ShowDialog(f) = DialogResult.OK then
         try
-            let fs = new FileStream(ofd.FileName, FileMode.Open)
+            imgfn <- ofd.FileName
+            let fs = new FileStream(imgfn, FileMode.Open)
             root <- Open(fs)
             fs.Dispose()
             
@@ -150,21 +176,49 @@ miFileOpen.Click.Add <| fun _ ->
 
 let sfd = new SaveFileDialog(Filter = "ZIP Archive (*.zip)|*.zip|All files (*.*)|*.*")
 
-miFileSaveZip.Click.Add <| fun _ ->
-    if sfd.ShowDialog(f) = DialogResult.OK then
-        let cur = Cursor.Current
-        Cursor.Current <- Cursors.WaitCursor
-        try
-            use fs = new FileStream(sfd.FileName, FileMode.Create)
-            SaveZip(fs, root)
-        with e ->
+let saveDir fn dir =
+    let cur = Cursor.Current
+    Cursor.Current <- Cursors.WaitCursor
+    try
+        use fs = new FileStream(fn, FileMode.Create)
+        SaveZip(fs, dir)
+    with e ->
 #if DEBUG
-            reraise()
+        reraise()
 #else
-            MessageBox.Show(e.ToString(), f.Text,
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Exclamation) |> ignore
+        MessageBox.Show(e.ToString(), f.Text,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Exclamation) |> ignore
 #endif
-        Cursor.Current <- cur
+    Cursor.Current <- cur
+
+miFileSaveZip.Click.Add <| fun _ ->
+    sfd.FileName <- imgfn + ".zip"
+    if sfd.ShowDialog(f) = DialogResult.OK then
+        saveDir sfd.FileName root
+
+miSaveZip1.Click.Add <| fun _ ->
+    let n = treeView1.SelectedNode
+    if n <> null then
+        sfd.FileName <- (if n.Text = "/" then imgfn else n.Text) + ".zip"
+        if sfd.ShowDialog(f) = DialogResult.OK then
+            saveDir sfd.FileName (n.Tag :?> Entry)
+
+miSaveZip2.Click.Add <| fun _ ->
+    let it = listView1.SelectedItems
+    if it.Count > 0 then
+        sfd.FileName <- it.[0].Text + ".zip"
+        if sfd.ShowDialog(f) = DialogResult.OK then
+            let ent = it.[0].Tag :?> Entry
+            saveDir sfd.FileName ent
+
+miSave.Click.Add <| fun _ ->
+    let it = listView1.SelectedItems
+    if it.Count > 0 then
+        use sfd = new SaveFileDialog()
+        sfd.FileName <- it.[0].Text
+        if sfd.ShowDialog(f) = DialogResult.OK then
+            let ent = it.[0].Tag :?> Entry
+            File.WriteAllBytes(sfd.FileName, readAllBytes ent.INode)
 
 [<STAThread>] Application.Run(f)
