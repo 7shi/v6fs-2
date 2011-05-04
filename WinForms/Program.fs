@@ -95,7 +95,12 @@ let showInfo (e:Entry) =
         sw.WriteLine()
     e.Write sw
     textBox1.Text <- sw.ToString()
-    textBox2.Text <- getHexDump(readAllBytes e.INode)
+    textBox2.Text <-
+        let bytes = readAllBytes e.INode
+        if e.Icon = "text" then
+            getText bytes
+        else
+            getHexDump bytes
 
 treeView1.AfterSelect.Add <| fun e ->
     if e.Node <> null then

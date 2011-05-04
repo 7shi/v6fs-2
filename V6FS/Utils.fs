@@ -61,3 +61,12 @@ let getHexDump (buf:byte[]) =
                 sw.Write("   ")
         sw.WriteLine(" {0}", asc.ToString())
     sw.ToString()
+
+let getText (buf:byte[]) =
+    let sb = new StringBuilder()
+    for b in buf do
+        if b = 10uy then
+            sb.Append("\r\n") |> ignore
+        else
+            sb.Append(char(b)) |> ignore
+    sb.ToString()
