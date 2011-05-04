@@ -114,6 +114,13 @@ listView1.SelectedIndexChanged.Add <| fun _ ->
         let ent = it.[0].Tag :?> Entry
         showInfo ent
 
+listView1.DoubleClick.Add <| fun _ ->
+    let it = listView1.SelectedItems
+    if it.Count > 0 then
+        let path = (it.[0].Tag :?> Entry).FullName
+        if dirdic.ContainsKey(path) then
+            treeView1.SelectedNode <- dirdic.[path]
+
 miFileExit.Click.Add <| fun _ -> f.Close()
 
 let mutable root = Unchecked.defaultof<Entry>
