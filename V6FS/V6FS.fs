@@ -143,7 +143,11 @@ type Entry =
         else if x.INode.IsExec then
             "executable"
         else
-            "file"
+            let ext = Path.GetExtension(x.Name)
+            if ext = ".o" || ext = ".a" then
+                "file"
+            else
+                "text"
     
     static member Compare (e1:Entry) (e2:Entry) =
         let d1, d2 = e1.INode.IsDir, e2.INode.IsDir
