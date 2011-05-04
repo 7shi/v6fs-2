@@ -133,6 +133,7 @@ miFileOpen.Click.Add <| fun _ ->
             root <- Open(fs)
             fs.Dispose()
             
+            dirdic.Clear()
             treeView1.Nodes.Clear()
             let nroot = dirTree root null
             nroot.Expand()
