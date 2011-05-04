@@ -62,6 +62,10 @@
     <Compile Include="Zip.fs" />
     <Compile Include="V6Type.fs" />
     <Compile Include="V6FS.fs" />
+    <EmbeddedResource Include="folder.png" />
+    <EmbeddedResource Include="file.png" />
+    <EmbeddedResource Include="executable.png" />
+    <EmbeddedResource Include="text.png" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\FSharp\1.0\Microsoft.FSharp.Targets" />
   <ProjectExtensions>
