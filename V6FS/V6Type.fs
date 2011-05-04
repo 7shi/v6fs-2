@@ -95,7 +95,8 @@ type inode =
     member x.Length  = (int(x.size0) <<< 16) ||| int(x.size1)
     member x.LastAccessTime = getTime x.atime
     member x.LastWriteTime  = getTime x.mtime
-    member x.IsDir = (int(x.mode) &&& IFDIR ) <> 0
+    member x.IsDir  = (int(x.mode) &&& IFDIR) <> 0
+    member x.IsExec = (int(x.mode) &&& IEXEC) <> 0
     
     member x.Write(tw:TextWriter, path:string) =
         tw.WriteLine("[{0:x8}] {1}", x.offset, path)

@@ -6,6 +6,14 @@ open System.Windows.Forms
 Application.EnableVisualStyles()
 Application.SetCompatibleTextRenderingDefault(false)
 
+let getResourceBitmap name =
+    use s = Utils.getResourceStream(name)
+    new Bitmap(s)
+
+let icons = new ImageList()
+for png in ["folder"; "file"; "executable"; "text"] do
+    icons.Images.Add(png, getResourceBitmap(png + ".png"))
+
 let menu = new MainMenu()
 let miFile = new MenuItem("&File")
 let miFileOpen = new MenuItem("&Open")
@@ -25,13 +33,19 @@ let textBox1 = new TextBox(Dock = DockStyle.Fill,
 split1.Panel1.Controls.Add(textBox1)
 let listView1 = new ListView(Dock = DockStyle.Fill,
                              FullRowSelect = true,
-                             View = View.Details)
+                             View = View.Details,
+                             SmallImageList = icons)
 let clmName = new ColumnHeader(Text = "Name", Width = 200)
 let clmSize = new ColumnHeader(Text = "Size", Width = 64, TextAlign = HorizontalAlignment.Right)
 listView1.Columns.AddRange([|clmName; clmSize|])
 split1.Panel2.Controls.Add(listView1)
 f.Controls.Add(split1)
 split1.SplitterDistance <- f.ClientSize.Width / 2
+
+let listDir(dir:V6FS.Entry) =
+    listView1.Items.Clear()
+    for e in dir.Children do
+        listView1.Items.Add(e.Name, e.Icon) |> ignore
 
 miFileExit.Click.Add <| fun _ -> f.Close()
 
@@ -50,9 +64,11 @@ miFileOpen.Click.Add <| fun _ ->
             let rec dir (e:V6FS.Entry) =
                 sw.WriteLine()
                 e.Write(sw)
-                for child in e.Children do
-                    dir(child)
+                if not(Utils.isCurOrParent e.Name) then
+                    for child in e.Children do
+                        dir(child)
             dir(root)
+            listDir root
             miFileSaveZip.Enabled <- true
         with e ->
 #if DEBUG

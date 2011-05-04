@@ -30,17 +30,21 @@
     <WarningLevel>3</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="mscorlib" />
-    <Reference Include="FSharp.Core" />
-    <Reference Include="System" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Utils.fs" />
     <Compile Include="Crc.fs" />
     <Compile Include="Deflate.fs" />
     <Compile Include="Zip.fs" />
     <Compile Include="V6Type.fs" />
     <Compile Include="V6FS.fs" />
+    <EmbeddedResource Include="folder.png" />
+    <EmbeddedResource Include="file.png" />
+    <EmbeddedResource Include="executable.png" />
+    <EmbeddedResource Include="text.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="FSharp.Core" />
+    <Reference Include="System" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\FSharp\1.0\Microsoft.FSharp.Targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -120,7 +120,7 @@ type Entry =
             for i = 1 to count do
                 let ino = int <| br.ReadUInt16()
                 let name = getString <| br.ReadBytes(14)
-                if ino <> 0 && not(isCurOrParent name) then
+                if ino <> 0 then
                     list.Add(x.New(ino, path, name))
             list.Sort(Comparison<Entry>(fun a b -> a.Name.CompareTo(b.Name)))
         x.children <- list.ToArray()
@@ -136,6 +136,14 @@ type Entry =
         if (mode &&& IWRITE) =  0 then ret <- ret ||| FileAttributes.ReadOnly
         if (mode &&& IFDIR ) <> 0 then ret <- ret ||| FileAttributes.Directory
         ret
+    
+    member x.Icon =
+        if x.INode.IsDir then
+            "folder"
+        else if x.INode.IsExec then
+            "executable"
+        else
+            "file"
 
 let getRoot(fsys:filsys) =
     { FileSystem = fsys
@@ -173,8 +181,9 @@ let rec writeDir(list:List<ZipDirHeader>, bw:BinaryWriter, e:Entry, rel:string) 
         bw.Write ziph.fname
         list.Add(ziph)
     for e in e.Children do
-        (if e.INode.IsDir then writeDir else writeFile)
-            (list, bw, e, pathCombine(rel, e.Name))
+        if not(isCurOrParent e.Name) then
+            (if e.INode.IsDir then writeDir else writeFile)
+                (list, bw, e, pathCombine(rel, e.Name))
 
 let SaveZip(fs:Stream, root:Entry) =
     use bw = new BinaryWriter(fs)

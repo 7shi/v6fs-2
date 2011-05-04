@@ -4,6 +4,7 @@ module Utils
 
 open System
 open System.IO
+open System.Reflection
 open System.Text
 
 let right(s:string, len:int) = s.Substring(s.Length - len)
@@ -38,3 +39,7 @@ let isCurOrParent(path:string) = path = "." || path = ".."
 
 let join(sep:string, objs:'a[]) =
     String.Join(sep, [| for obj in objs -> obj.ToString() |])
+
+let getResourceStream(name) =
+    let asm = Assembly.GetExecutingAssembly()
+    asm.GetManifestResourceStream(name)
