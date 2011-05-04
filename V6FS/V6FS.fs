@@ -120,7 +120,7 @@ type Entry =
             for i = 1 to count do
                 let ino = int <| br.ReadUInt16()
                 let name = getString <| br.ReadBytes(14)
-                if ino <> 0 then
+                if ino <> 0 && not(isCurOrParent name) then
                     list.Add(x.New(ino, path, name))
             list.Sort(Comparison<Entry> Entry.Compare)
         x.children <- list.ToArray()
@@ -148,14 +148,7 @@ type Entry =
     static member Compare (e1:Entry) (e2:Entry) =
         let d1, d2 = e1.INode.IsDir, e2.INode.IsDir
         let n1, n2 = e1.Name.ToLower(), e2.Name.ToLower()
-        if d1 && d2 then
-            if n1 = "." then
-                if n2 = "." then 0 else -1
-            elif n1 = ".." then
-                if n2 = "." then 1 elif n2 = ".." then 0 else -1
-            else
-                n1.CompareTo(n2)
-        elif d1 && not d2 then
+        if d1 && not d2 then
             -1
         elif not d1 && d2 then
             1
@@ -198,9 +191,8 @@ let rec writeDir(list:List<ZipDirHeader>, bw:BinaryWriter, e:Entry, rel:string) 
         bw.Write ziph.fname
         list.Add(ziph)
     for e in e.Children do
-        if not(isCurOrParent e.Name) then
-            (if e.INode.IsDir then writeDir else writeFile)
-                (list, bw, e, pathCombine(rel, e.Name))
+        (if e.INode.IsDir then writeDir else writeFile)
+            (list, bw, e, pathCombine(rel, e.Name))
 
 let SaveZip(fs:Stream, root:Entry) =
     use bw = new BinaryWriter(fs)
