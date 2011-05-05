@@ -16,25 +16,29 @@ namespace Silverlight
 {
     public partial class MainPage : UserControl
     {
-        private V6FS.Entry root;
+        private static Dictionary<string, ImageSource> images =
+            new Dictionary<string, ImageSource>();
 
-        public MainPage()
+        private static void addImage(string name)
         {
-            InitializeComponent();
+            var img = new BitmapImage();
+            img.SetSource(Utils.getResourceStream(name + ".png"));
+            images.Add(name, img);
+        }
+
+        static MainPage()
+        {
             addImage("folder");
             addImage("file");
             addImage("executable");
             addImage("text");
         }
 
-        private Dictionary<string, BitmapImage> images =
-            new Dictionary<string, BitmapImage>();
+        private V6FS.Entry root;
 
-        private void addImage(string name)
+        public MainPage()
         {
-            var img = new BitmapImage();
-            img.SetSource(Utils.getResourceStream(name + ".png"));
-            images.Add(name, img);
+            InitializeComponent();
         }
 
         private TreeViewItem createNode(string icon, string text, object tag)
@@ -66,12 +70,48 @@ namespace Silverlight
             return nn;
         }
 
+        public class ListEntry
+        {
+            public ImageSource Icon { get; set; }
+            public string Name { get; set; }
+            public string Size { get { return string.Format("{0:#,#}", size); } }
+            private int size;
+            private V6FS.Entry Entry;
+
+            public ListEntry(V6FS.Entry e)
+            {
+                Entry = e;
+                Icon = images[e.Icon];
+                Name = e.Name;
+                size = e.INode.Length;
+            }
+        }
+
+        private void dirList(V6FS.Entry dir)
+        {
+            var list = new List<ListEntry>();
+            foreach (var e in dir.Children)
+                list.Add(new ListEntry(e));
+            dataGrid1.ItemsSource = list;
+        }
+
         private void dirINodes(TextWriter tw, V6FS.Entry e)
         {
             tw.WriteLine();
             e.Write(tw);
             foreach (var child in e.Children)
                 dirINodes(tw, child);
+        }
+
+        private void treeView1_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            var it = e.NewValue as TreeViewItem;
+            if (it == null) return;
+
+            var ent = it.Tag as V6FS.Entry;
+            if (ent == null) return;
+
+            dirList(ent);
         }
 
         private void btnOpen_Click(object sender, RoutedEventArgs e)
@@ -91,6 +131,8 @@ namespace Silverlight
                 treeView1.Items.Clear();
                 var nroot = dirTree(root, null);
                 nroot.IsExpanded = true;
+                nroot.IsSelected = true;
+                dirList(root);
                 root.FileSystem.Write(sw);
                 dirINodes(sw, root);
                 btnSaveZip.IsEnabled = true;

@@ -3,8 +3,9 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sdk="http://schemas.microsoft.com/winfx/2006/xaml/presentation/sdk"
     mc:Ignorable="d"
-    d:DesignHeight="300" d:DesignWidth="500" xmlns:sdk="http://schemas.microsoft.com/winfx/2006/xaml/presentation/sdk">
+    d:DesignHeight="300" d:DesignWidth="500">
 
     <UserControl.Resources>
         <Style x:Key="AlignRight" TargetType="sdk:DataGridCell">
@@ -32,7 +33,7 @@
         </Grid>
         <sdk:TabControl Grid.Row="1" Grid.Column="0" Margin="0,0,6,0">
             <sdk:TabItem Header="Directories">
-                <sdk:TreeView Name="treeView1" />
+                <sdk:TreeView Name="treeView1" SelectedItemChanged="treeView1_SelectedItemChanged" />
             </sdk:TabItem>
         </sdk:TabControl>
         <sdk:GridSplitter Grid.Row="1" Grid.Column="0" Width="6" HorizontalAlignment="Right" VerticalAlignment="Stretch" />
@@ -40,8 +41,15 @@
             <sdk:TabItem Header="Files">
                 <sdk:DataGrid Name="dataGrid1" IsReadOnly="True" AutoGenerateColumns="False">
                     <sdk:DataGrid.Columns>
-                        <sdk:DataGridTextColumn Header="Name" Binding="{Binding Path}" CanUserReorder="True" CanUserResize="True" CanUserSort="True" Width="Auto" />
-                        <sdk:DataGridTextColumn Header="Size" Binding="{Binding Length}" CanUserReorder="True" CanUserResize="True" CanUserSort="True" Width="Auto" CellStyle="{StaticResource AlignRight}" />
+                        <sdk:DataGridTemplateColumn Width="24" CanUserResize="False" >
+                            <sdk:DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Image Source="{Binding Icon}" Stretch="None" />
+                                </DataTemplate>
+                            </sdk:DataGridTemplateColumn.CellTemplate>
+                        </sdk:DataGridTemplateColumn>
+                        <sdk:DataGridTextColumn Header="Name" Binding="{Binding Name}" CanUserReorder="True" CanUserResize="True" CanUserSort="True" Width="Auto" />
+                        <sdk:DataGridTextColumn Header="Size" Binding="{Binding Size}" CanUserReorder="True" CanUserResize="True" CanUserSort="True" Width="Auto" CellStyle="{StaticResource AlignRight}" />
                     </sdk:DataGrid.Columns>
                 </sdk:DataGrid>
             </sdk:TabItem>
