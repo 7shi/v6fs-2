@@ -25,7 +25,7 @@
         <Grid Grid.ColumnSpan="3">
             <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
                 <Button Content="Open SIMH Disk Image" Name="btnOpen" Click="btnOpen_Click" Margin="4,4,0,4" />
-                <Button Content="Save Zip" Name="btnSaveZip" Click="btnSaveZip_Click" Margin="4,4,0,4" IsEnabled="False" />
+                <Button Content="Save Image as Zip" Name="btnSaveZip" Click="btnSaveZip_Click" Margin="4,4,0,4" IsEnabled="False" />
             </StackPanel>
             <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,6,0">
                 UNIX V6 File System Viewer
