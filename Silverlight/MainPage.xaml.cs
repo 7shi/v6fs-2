@@ -76,9 +76,9 @@ namespace Silverlight
         {
             public ImageSource Icon { get; set; }
             public string Name { get; set; }
-            public string Size { get { return string.Format("{0:#,#}", size); } }
             private int size;
-            private V6FS.Entry Entry;
+            public string Size { get { return string.Format("{0:#,#}", size); } }
+            public V6FS.Entry Entry;
 
             public ListEntry(V6FS.Entry e)
             {
@@ -105,6 +105,23 @@ namespace Silverlight
                 dirINodes(tw, child);
         }
 
+        private void showInfo(V6FS.Entry e)
+        {
+            var sw = new StringWriter();
+            if (e.INode.inode == 1)
+            {
+                e.FileSystem.Write(sw);
+                sw.WriteLine();
+            }
+            e.Write(sw);
+            textBox1.Text = sw.ToString();
+            var bytes = V6FS.readAllBytes(e.INode);
+            if (e.Icon == "text")
+                textBox2.Text = Utils.getText(bytes);
+            else
+                textBox2.Text = Utils.getHexDump(bytes);
+        }
+
         private void treeView1_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             var it = e.NewValue as TreeViewItem;
@@ -114,6 +131,18 @@ namespace Silverlight
             if (ent == null) return;
 
             dirList(ent);
+            showInfo(ent);
+        }
+
+        private void dataGrid1_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var items = e.AddedItems;
+            if (items.Count == 0) return;
+
+            var it = items[0] as ListEntry;
+            if (it == null) return;
+
+            showInfo(it.Entry);
         }
 
         private void btnOpen_Click(object sender, RoutedEventArgs e)
@@ -121,7 +150,6 @@ namespace Silverlight
             var ofd = new OpenFileDialog();
             if (ofd.ShowDialog() != true) return;
 
-            var sw = new StringWriter();
 #if !DEBUG
             try
 #endif
@@ -135,8 +163,7 @@ namespace Silverlight
                 nroot.IsExpanded = true;
                 nroot.IsSelected = true;
                 dirList(root);
-                root.FileSystem.Write(sw);
-                dirINodes(sw, root);
+                showInfo(root);
                 btnSaveZip.IsEnabled = true;
             }
 #if !DEBUG
@@ -147,7 +174,6 @@ namespace Silverlight
                 root = null;
             }
 #endif
-            textBox1.Text = sw.ToString();
         }
 
         private void btnSaveZip_Click(object sender, RoutedEventArgs e)
