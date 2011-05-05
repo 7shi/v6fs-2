@@ -66,6 +66,14 @@ namespace Silverlight
             return nn;
         }
 
+        private void dirINodes(TextWriter tw, V6FS.Entry e)
+        {
+            tw.WriteLine();
+            e.Write(tw);
+            foreach (var child in e.Children)
+                dirINodes(tw, child);
+        }
+
         private void btnOpen_Click(object sender, RoutedEventArgs e)
         {
             var ofd = new OpenFileDialog();
@@ -84,15 +92,7 @@ namespace Silverlight
                 var nroot = dirTree(root, null);
                 nroot.IsExpanded = true;
                 root.FileSystem.Write(sw);
-                Action<V6FS.Entry> dir = null;
-                dir = ent =>
-                {
-                    sw.WriteLine();
-                    ent.Write(sw);
-                    foreach (var child in ent.Children)
-                        dir(child);
-                };
-                dir(root);
+                dirINodes(sw, root);
                 btnSaveZip.IsEnabled = true;
             }
 #if !DEBUG
