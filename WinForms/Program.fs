@@ -153,7 +153,11 @@ let ofd = new OpenFileDialog()
 
 miFileOpen.Click.Add <| fun _ ->
     if ofd.ShowDialog(f) = DialogResult.OK then
+#if DEBUG
+        do
+#else
         try
+#endif
             imgfn <- ofd.FileName
             let fs = new FileStream(imgfn, FileMode.Open)
             root <- Open(fs)
@@ -165,10 +169,9 @@ miFileOpen.Click.Add <| fun _ ->
             nroot.Expand()
             treeView1.SelectedNode <- nroot
             miFileSaveZip.Enabled <- true
-        with e ->
 #if DEBUG
-            reraise()
 #else
+        with e ->
             textBox1.Text <- e.ToString()
             miFileSaveZip.Enabled <- false
             root <- Unchecked.defaultof<Entry>
@@ -179,13 +182,16 @@ let sfd = new SaveFileDialog(Filter = "ZIP Archive (*.zip)|*.zip|All files (*.*)
 let saveDir fn dir =
     let cur = Cursor.Current
     Cursor.Current <- Cursors.WaitCursor
+#if DEBUG
+    do
+#else
     try
+#endif
         use fs = new FileStream(fn, FileMode.Create)
         SaveZip(fs, dir)
-    with e ->
 #if DEBUG
-        reraise()
 #else
+    with e ->
         MessageBox.Show(e.ToString(), f.Text,
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Exclamation) |> ignore
