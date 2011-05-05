@@ -91,7 +91,7 @@ let dirList (dir:Entry) =
     for e in dir.Children do
         let it = listView1.Items.Add(e.Name, e.Icon)
         it.Tag <- e
-        it.SubItems.Add(e.INode.Length.ToString()) |> ignore
+        it.SubItems.Add(String.Format("{0:#,#}", e.INode.Length)) |> ignore
 
 let rec dirINodes (tw:TextWriter) (e:Entry) =
     tw.WriteLine()
