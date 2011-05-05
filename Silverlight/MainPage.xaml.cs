@@ -9,6 +9,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
 namespace Silverlight
@@ -20,6 +21,49 @@ namespace Silverlight
         public MainPage()
         {
             InitializeComponent();
+            addImage("folder");
+            addImage("file");
+            addImage("executable");
+            addImage("text");
+        }
+
+        private Dictionary<string, BitmapImage> images =
+            new Dictionary<string, BitmapImage>();
+
+        private void addImage(string name)
+        {
+            var img = new BitmapImage();
+            img.SetSource(Utils.getResourceStream(name + ".png"));
+            images.Add(name, img);
+        }
+
+        private TreeViewItem createNode(string icon, string text, object tag)
+        {
+            var st = new StackPanel { Orientation = Orientation.Horizontal };
+            var img = new Image
+            {
+                Source = images[icon],
+                Margin = new Thickness(0, 0, 4, 0)
+            };
+            st.Children.Add(img);
+            st.Children.Add(new TextBlock { Text = text });
+            return new TreeViewItem { Header = st, Tag = tag };
+        }
+
+        private Dictionary<string, TreeViewItem> dirdic =
+            new Dictionary<string, TreeViewItem>();
+
+        private TreeViewItem dirTree(V6FS.Entry dir, TreeViewItem n)
+        {
+            var items = n != null ? n.Items : treeView1.Items;
+            var nn = createNode(dir.Icon, dir.Name, dir);
+            items.Add(nn);
+            dirdic.Add(dir.FullName, nn);
+            foreach (var e in dir.Children)
+            {
+                if (e.INode.IsDir) dirTree(e, nn);
+            }
+            return nn;
         }
 
         private void btnOpen_Click(object sender, RoutedEventArgs e)
@@ -35,6 +79,10 @@ namespace Silverlight
                 using (var fs = ofd.File.OpenRead())
                     root = V6FS.Open(fs);
 
+                dirdic.Clear();
+                treeView1.Items.Clear();
+                var nroot = dirTree(root, null);
+                nroot.IsExpanded = true;
                 root.FileSystem.Write(sw);
                 Action<V6FS.Entry> dir = null;
                 dir = ent =>
