@@ -21,8 +21,10 @@ namespace Silverlight
 
         private static void addImage(string name)
         {
+            var uri = new Uri("/V6FS;component/" + name + ".png", UriKind.Relative);
+            var s = Application.GetResourceStream(uri);
             var img = new BitmapImage();
-            img.SetSource(Utils.getResourceStream(name + ".png"));
+            img.SetSource(s.Stream);
             images.Add(name, img);
         }
 
