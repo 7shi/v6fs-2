@@ -4,9 +4,19 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    d:DesignHeight="300" d:DesignWidth="400">
+    d:DesignHeight="300" d:DesignWidth="500" xmlns:sdk="http://schemas.microsoft.com/winfx/2006/xaml/presentation/sdk">
 
+    <UserControl.Resources>
+        <Style x:Key="AlignRight" TargetType="sdk:DataGridCell">
+            <Setter Property="HorizontalContentAlignment" Value="Right" />
+        </Style>
+    </UserControl.Resources>
     <Grid x:Name="LayoutRoot" Background="White">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="140" />
+            <ColumnDefinition Width="200" />
+            <ColumnDefinition Width="1*" />
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="29" />
             <RowDefinition Height="1*" />
@@ -17,9 +27,42 @@
                 <Button Content="Save Zip" Name="btnSaveZip" Click="btnSaveZip_Click" Margin="4,4,0,4" IsEnabled="False" />
             </StackPanel>
             <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,6,0">
-                UNIX v6 File System Viewer
+                UNIX V6 File System Viewer
             </TextBlock>
         </Grid>
-        <TextBox Name="textBox1" FontFamily="Courier New" FontSize="12" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible" Grid.Row="1" />
+        <sdk:TabControl Grid.Row="1" Grid.Column="0" Margin="0,0,6,0">
+            <sdk:TabItem Header="Directories">
+                <sdk:TreeView Name="treeView1" />
+            </sdk:TabItem>
+        </sdk:TabControl>
+        <sdk:GridSplitter Grid.Row="1" Grid.Column="0" Width="6" HorizontalAlignment="Right" VerticalAlignment="Stretch" />
+        <sdk:TabControl Grid.Row="1" Grid.Column="1" Margin="0,0,6,0">
+            <sdk:TabItem Header="Files">
+                <sdk:DataGrid Name="dataGrid1" IsReadOnly="True" AutoGenerateColumns="False">
+                    <sdk:DataGrid.Columns>
+                        <sdk:DataGridTextColumn Header="Name" Binding="{Binding Path}" CanUserReorder="True" CanUserResize="True" CanUserSort="True" Width="Auto" />
+                        <sdk:DataGridTextColumn Header="Size" Binding="{Binding Length}" CanUserReorder="True" CanUserResize="True" CanUserSort="True" Width="Auto" CellStyle="{StaticResource AlignRight}" />
+                    </sdk:DataGrid.Columns>
+                </sdk:DataGrid>
+            </sdk:TabItem>
+        </sdk:TabControl>
+        <sdk:GridSplitter Grid.Row="1" Grid.Column="1" Width="6" HorizontalAlignment="Right" VerticalAlignment="Stretch" />
+        <Grid Grid.Column="2" Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="1*" />
+            </Grid.RowDefinitions>
+            <sdk:TabControl Grid.Row="0" Margin="0,0,0,6">
+                <sdk:TabItem Header="INode Info">
+                    <TextBox Name="textBox1" FontFamily="Courier New" FontSize="12" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible" />
+                </sdk:TabItem>
+            </sdk:TabControl>
+            <sdk:GridSplitter Height="6" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" />
+            <sdk:TabControl Grid.Row="1">
+                <sdk:TabItem Header="File Viewer">
+                    <TextBox Name="textBox2" FontFamily="Courier New" FontSize="12" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible" />
+                </sdk:TabItem>
+            </sdk:TabControl>
+        </Grid>
     </Grid>
 </UserControl>
