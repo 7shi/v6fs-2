@@ -37,10 +37,29 @@ namespace Silverlight
         }
 
         private V6FS.Entry root;
+        private Command cmdSaveImage, cmdSaveFile, cmdSaveDir;
 
         public MainPage()
         {
             InitializeComponent();
+
+            var canvas = cmenuFile.Parent as Canvas;
+            canvas.Children.Remove(cmenuFile);
+
+            cmdSaveImage = new Command(saveImage);
+            cmdSaveFile = new Command(saveFile);
+            cmdSaveDir = new Command(saveDir);
+            menuFileSaveImage.Command = cmdSaveImage;
+            menuFileSaveFile.Command = menuSaveFile.Command = cmdSaveFile;
+            menuFileSaveDir.Command = menuSaveDir1.Command = menuSaveDir2.Command = cmdSaveDir;
+        }
+
+        private Point mousePos;
+
+        protected override void OnMouseMove(MouseEventArgs e)
+        {
+            mousePos = e.GetPosition(null);
+            base.OnMouseMove(e);
         }
 
         private TreeViewItem createNode(string icon, string text, object tag)
@@ -105,8 +124,11 @@ namespace Silverlight
                 dirINodes(tw, child);
         }
 
+        private V6FS.Entry target;
+
         private void showInfo(V6FS.Entry e)
         {
+            target = e;
             var sw = new StringWriter();
             if (e.INode.inode == 1)
             {
@@ -120,6 +142,9 @@ namespace Silverlight
                 textBox2.Text = Utils.getText(bytes);
             else
                 textBox2.Text = Utils.getHexDump(bytes);
+            var isDir = e.INode.IsDir;
+            cmdSaveFile.CanExecute(!isDir);
+            cmdSaveDir.CanExecute(isDir);
         }
 
         private void treeView1_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -145,7 +170,35 @@ namespace Silverlight
             showInfo(it.Entry);
         }
 
-        private void btnOpen_Click(object sender, RoutedEventArgs e)
+        private T getElement<T>(Point p, UIElement e) where T : UIElement
+        {
+            var elems = VisualTreeHelper.FindElementsInHostCoordinates(p, e);
+            var it = (from i in elems where i is T select i as T).GetEnumerator();
+            return it.MoveNext() ? it.Current : null;
+        }
+
+        private void treeView1_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var it = getElement<TreeViewItem>(e.GetPosition(null), treeView1);
+            if (it != null) it.IsSelected = true;
+        }
+
+        private void dataGrid1_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var it = getElement<DataGridRow>(e.GetPosition(null), dataGrid1);
+            if (it != null) dataGrid1.SelectedIndex = it.GetIndex();
+        }
+
+        private void menuFile_Click(object sender, RoutedEventArgs e)
+        {
+            var trans = menuFile.TransformToVisual(this);
+            var p = trans.Transform(new Point(0, menuFile.ActualHeight));
+            cmenuFile.HorizontalOffset = p.X - mousePos.X;
+            cmenuFile.VerticalOffset = p.Y - mousePos.Y;
+            cmenuFile.IsOpen = !cmenuFile.IsOpen;
+        }
+
+        private void menuFileOpen_Click(object sender, RoutedEventArgs e)
         {
             var ofd = new OpenFileDialog();
             if (ofd.ShowDialog() != true) return;
@@ -164,19 +217,20 @@ namespace Silverlight
                 nroot.IsSelected = true;
                 dirList(root);
                 showInfo(root);
-                btnSaveZip.IsEnabled = true;
+                cmdSaveImage.CanExecute(true);
             }
 #if !DEBUG
             catch (Exception ex)
             {
-                sw.WriteLine(ex.ToString());
-                btnSaveZip.IsEnabled = false;
+                textBox1.Text = ex.ToString();
+                textBox2.Text = "";
+                cmdSaveImage.CanExecute(false);
                 root = null;
             }
 #endif
         }
 
-        private void btnSaveZip_Click(object sender, RoutedEventArgs e)
+        private void saveZip(V6FS.Entry e)
         {
             var sfd = new SaveFileDialog();
             sfd.Filter = "Zip ファイル (*.zip)|*.zip|すべてのファイル (*.*)|*.*";
@@ -187,7 +241,7 @@ namespace Silverlight
 #endif
             {
                 using (var fs = sfd.OpenFile())
-                    V6FS.SaveZip(fs, root);
+                    V6FS.SaveZip(fs, e);
             }
 #if !DEBUG
             catch (Exception ex)
@@ -195,6 +249,40 @@ namespace Silverlight
                 MessageBox.Show(ex.ToString());
             }
 #endif
+        }
+
+        private void saveImage()
+        {
+            saveZip(root);
+        }
+
+        private void saveFile()
+        {
+            if (target == null) return;
+
+            var sfd = new SaveFileDialog();
+            sfd.Filter = "すべてのファイル (*.*)|*.*";
+            if (sfd.ShowDialog() != true) return;
+
+#if !DEBUG
+            try
+#endif
+            {
+                var bytes = V6FS.readAllBytes(target.INode);
+                using (var fs = sfd.OpenFile())
+                    fs.Write(bytes, 0, bytes.Length);
+            }
+#if !DEBUG
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+#endif
+        }
+
+        private void saveDir()
+        {
+            if (target != null) saveZip(target);
         }
     }
 }
