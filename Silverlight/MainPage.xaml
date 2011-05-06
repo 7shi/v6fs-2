@@ -58,7 +58,8 @@
         <sdk:GridSplitter Grid.Row="1" Grid.Column="0" Width="6" HorizontalAlignment="Right" VerticalAlignment="Stretch" />
         <sdk:TabControl Grid.Row="1" Grid.Column="1" Margin="0,0,6,0">
             <sdk:TabItem Header="Files">
-                <sdk:DataGrid Name="dataGrid1" IsReadOnly="True" AutoGenerateColumns="False" SelectionChanged="dataGrid1_SelectionChanged" MouseRightButtonDown="dataGrid1_MouseRightButtonDown" SelectionMode="Single">
+                <sdk:DataGrid Name="dataGrid1" IsReadOnly="True" AutoGenerateColumns="False" SelectionMode="Single"
+                              SelectionChanged="dataGrid1_SelectionChanged" MouseLeftButtonUp="dataGrid1_MouseLeftButtonUp" MouseRightButtonDown="dataGrid1_MouseRightButtonDown">
                     <sdk:DataGrid.Columns>
                         <sdk:DataGridTemplateColumn Width="24" CanUserResize="False" >
                             <sdk:DataGridTemplateColumn.CellTemplate>

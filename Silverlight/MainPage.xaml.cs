@@ -214,9 +214,7 @@ namespace Silverlight
                 treeView1.Items.Clear();
                 var nroot = dirTree(root, null);
                 nroot.IsExpanded = true;
-                nroot.IsSelected = true;
-                dirList(root);
-                showInfo(root);
+                Dispatcher.BeginInvoke(() => nroot.IsSelected = true);
                 cmdSaveImage.CanExecute(true);
             }
 #if !DEBUG
@@ -283,6 +281,42 @@ namespace Silverlight
         private void saveDir()
         {
             if (target != null) saveZip(target);
+        }
+
+        private DateTime lastClickTime = DateTime.Now.AddSeconds(-1);
+        private DataGridRow lastClickRow;
+
+        private void dataGrid1_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            var now = DateTime.Now;
+            var row = getElement<DataGridRow>(e.GetPosition(null), dataGrid1);
+            if (row != null && row == lastClickRow
+                && (now - lastClickTime).TotalMilliseconds < 500)
+            {
+                dataGrid1_DoubleClick();
+                lastClickTime = now.AddSeconds(-1);
+            }
+            else
+                lastClickTime = now;
+            lastClickRow = row;
+        }
+
+        private void dataGrid1_DoubleClick()
+        {
+            var e = lastClickRow.DataContext as ListEntry;
+            if (e == null) return;
+
+            var path = e.Entry.FullName;
+            if (!dirdic.ContainsKey(path)) return;
+
+            var n = dirdic[path];
+            var st = new Stack<TreeViewItem>();
+            for (var nn = n.Parent as TreeViewItem; nn != null;
+                nn = nn.Parent as TreeViewItem)
+                st.Push(nn);
+            while (st.Count > 0)
+                st.Pop().IsExpanded = true;
+            Dispatcher.BeginInvoke(() => n.IsSelected = true);
         }
     }
 }
