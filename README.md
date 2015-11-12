@@ -1,13 +1,13 @@
-* UNIX V6 File System Viewer
+# UNIX V6 File System Viewer
 
-- Extract file from SIMH disk image
-- Convert SIMH disk image to ZIP
+* Extract file from SIMH disk image
+* Convert SIMH disk image to ZIP
 
-** License
+## License
 
 UNIX V6 is licensed under Caldera Ancient Unix License.
 
-*** Caldera Ancient Unix License
+### Caldera Ancient Unix License
 
 Copyright(C) Caldera International Inc. 2001-2002. All rights reserved.
 
@@ -40,7 +40,7 @@ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE 
 OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 
-*** V6FS License
+### V6FS License
 
 Some types derived from UNIX V6 are licensed under Caldera Ancient Unix License.
 Other original codes are in the public domain.
